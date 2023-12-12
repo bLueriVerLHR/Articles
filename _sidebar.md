@@ -1,6 +1,5 @@
 - [Home](/)
 - [Compiler.Design](/documents/Compiler/Design.md)
-- [GPGPU.Design](/documents/GPGPU/Design.md)
 - [MLSys](/documents/MLSys/)
 - [PL.Rust](/documents/PL/Rust.md)
 - [Tool.Git](/documents/Tool/Git.md)
