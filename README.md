@@ -14,10 +14,10 @@
 
 简写的含义：
 
-| Abbreviation | Meaning                                 |
-| ------------ | --------------------------------------- |
-| PL           | Programming Language                    |
-| GPGPU        | General-Purpose Graphic Processing Unit |
+| Abbreviation | Meaning                           |
+| ------------ | --------------------------------- |
+| CaPL         | Compiler and Programming Language |
+| MLSys        | Machine Learning System           |
 
 VSCode 配置：
 

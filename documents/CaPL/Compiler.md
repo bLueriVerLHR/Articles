@@ -1,4 +1,6 @@
-# Compiler Design
+# Compiler
+
+本文主要关于编译器设计和实现。
 
 > [!NOTE]
 > 寄存器分配和指令调度其实都是 NP 问题，需要未来深入讨论。

@@ -1,10 +1,11 @@
-# Machine Learning
+# Machine Learning System
 
 机器学习部分，目前主要关注 `大语言模型` 和 `图神经网络` 这两个方向。
 
+该分块非常的宽泛，但主要围绕机器学习这一个主题，对任何系统有关的，软硬件知识进行集中。
+
 正在阅读的论文
 
-- [x] SpotServe
 - [ ] [GraNNDis: Efficient Unified Distributed Training Framework for Deep GNNs on Large Clusters](https://doi.org/10.48550/arXiv.2311.06837)
 - [ ] [cuDNN: Efficient Primitives for Deep Learning](https://doi.org/10.48550/arXiv.1410.0759)
 - [ ] [Going deeper with convolutions](https://doi.org/10.1109/CVPR.2015.7298594)
