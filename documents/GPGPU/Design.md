@@ -938,8 +938,22 @@ L2 缓存、帧缓存、光栅化单元构成存储分区单元
 - [Table-lookup algorithms for elementary functions and their error analysis](https://doi.org/10.1109/ARITH.1991.145565)
 - [Faithful bipartite ROM reciprocal tables](https://doi.org/10.1109/ARITH.1995.465381)
 
+阅读材料：
+
+- [A high-performance area-efficient multifunction interpolator](https://doi.org/10.1109/ARITH.2005.7)
+
 ## 运算单元架构
 
-# GPGPU 张量核心架构
+**峰值算力** 体现的是 GPGPU 的硬件能力，需要每个周期都有指令在执行。
 
-# 总结
+**指令吞吐率** 是指每个时钟周期发射或完成的平均指令数量，代表了实际应用执行时的效率，是刻画 GPGPU 性能的重要指标。
+
+阅读材料：
+
+- [Bank stealing for conflict mitigation in GPGPU Register File](https://doi.org/10.1109/ISLPED.2015.7273490)
+
+## 脉动阵列结构
+
+**脉动阵列** 最早由 [H. T. Kung](https://www.eecs.harvard.edu/htk/publications) 在 1982 年在该 [文献](https://doi.org/10.1109/MC.1982.1653825 "Why systolic architectures?") 中提出。
+
+在支持通用矩阵乘法（GEneral Matrix Multiply，GEMM）的脉动阵列中，每个处理单元专注于执行乘加运算。
