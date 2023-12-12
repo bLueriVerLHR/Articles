@@ -794,6 +794,30 @@ C: // critical section
 
 # GPGPU 运算单元架构
 
+## 数值的表示
+
+浮点数据
+
+- [IEEE 754](https://doi.org/10.1109/IEEESTD.2019.8766229 "754-2019 - IEEE Standard for Floating-Point Arithmetic")
+- [BF16](https://cloud.google.com/tpu/docs/bfloat16 "The bfloat16 numerical format")
+- [TF32](https://blogs.nvidia.com/blog/tensorfloat-32-precision-format "TensorFloat-32 in the A100 GPU Accelerates AI Training, HPC up to 20x")
+- [FlexPoint](https://dl.acm.org/doi/10.5555/3294771.3294937 "Flexpoint: An Adaptive Numerical Format for Efficient Training of Deep Neural Networks")
+
+## 计算单元
+
+主要参考：
+
+- [Computer Arithmetic: Algorithms and Hardware Designs](https://dl.acm.org/doi/10.5555/1816384)
+
+特殊功能单元
+
+- [SFU-Driven Transparent Approximation Acceleration on GPUs](https://doi.org/10.1145/2925426.2926255)
+- [High-speed function approximation using a minimax quadratic interpolator](https://doi.org/10.1109/TC.2005.52)
+- [Table-lookup algorithms for elementary functions and their error analysis](https://doi.org/10.1109/ARITH.1991.145565)
+- [Faithful bipartite ROM reciprocal tables](https://doi.org/10.1109/ARITH.1995.465381)
+
+## 运算单元架构
+
 # GPGPU 张量核心架构
 
 # 总结
