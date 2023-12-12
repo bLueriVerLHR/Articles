@@ -3,7 +3,16 @@
 参考：
 
 - [通用图形处理器设计 - GPGPU 编程模型与架构原理](https://book.douban.com/subject/35998320/)
+
+阅读资料：
+
 - [A Case Study in Reverse Engineering GPGPUs: Outstanding Memory Handling Resources](https://doi.org/10.1145/2927964.2927968)
+- [Dissecting GPU Memory Hierarchy Through Microbenchmarking](https://doi.org/10.1109/TPDS.2016.2549523)
+- [In-depth analyses of unified virtual memory system for GPU accelerated computing](https://doi.org/10.1145/3458817.3480855)
+- Non-uniform memory access
+  - [EN-WIKI](https://en.wikipedia.org/wiki/Non-uniform_memory_access)
+  - [An Overview: NUMA becomes more common because memory controllers get close to execution units on microprocessors.](https://doi.org/10.1145/2508834.2513149)
+  - [Construction and optimization of heterogeneous memory system based on NUMA architecture](https://doi.org/10.1109/ICSP54964.2022.9778754)
 
 GPGPU 常用术语对照表
 
@@ -183,6 +192,8 @@ GPGPU 会将寄存器静态地分配给每个线程，使得每个线程都可�
 > 由SM处理的每个线程束的执行上下文，在整个线程束的生存期中是保存在芯片内的。
 > 因此，从一个执行上下文切换到另一个执行上下文没有损失。
 > 同时，由于这个特性，多个线程束对寄存器的消耗也非常大。
+
+可参考 [文献](https://doi.org/10.1145/3419973 "Highly Concurrent Latency-tolerant Register Files for GPUs")。
 
 寄存器文件采用多个板块（Bank）的单端口 SRAM 来模拟多端口的访问。
 由于其总容量非常大，每个逻辑板块还会被进一步拆分为更小的物理板块。
@@ -736,6 +747,16 @@ SIMT 堆栈本质上仍然是一个栈，栈内条目的进出以压栈和出栈
 可以选择利用编译器插入指令，在运行时动态维护一个 SIMT 堆栈。
 还可以如主流 GPGPU 一样采用硬件 SIMT 堆栈的方式提高线程分支的执行效率。
 
+上述控制流图对应的 SIMT 堆栈情况如下：
+
+```
+A/1111 -> G/1111 -> G/1111 -> G/1111 -> G/1111 -> G/1111 -> G/1111 -> A/1111 -> ...
+          F/0001    F/0001    F/0001    F/0001    F/0001
+          B/1110    E/1110    E/1110    E/1110
+                    D/0110    D/0110
+                    C/1000
+```
+
 ### 分支屏障
 
 基于 SIMT 堆栈的线程分支管理方式简单高效，但在特殊情况下可能会存在功能和效率上的问题。
@@ -756,21 +777,21 @@ C: // critical section
 那么考察如下的控制流图：
 
 ```
-   +-----+
-   |  A  |
-   +-----+
-      |
-      v
-   +-----+
-   |  B  |<--+
-   +-----+   |
-      |      |
-      +------+
-      |
-      v
-   +-----+
-   |  C  |
-   +-----+
+   +-------+
+   |   A   |
+   +-------+
+       |
+       v
+   +-------+
+   |   B   |<--+
+   +-----+-+   |
+       | |     |
+       | +-----+
+       |
+       v
+   +-------+
+   |   C   |
+   +-------+
 ```
 
 那么 SIMT 堆栈需要压入两个条目，一个条目表示正在基本块 B 等待的剩下三个线程 `B/0111`，一个条目表示进入临界区的第一个线程 `C/1000`。
@@ -835,7 +856,63 @@ GPGPU 一般采用专用存储器件如 GDDR（Graphics Double Data Rate）和 H
 
 ![GPGPU 存储层次](_media/GPGPU存储层次.png)
 
-## 数据通路
+## 可编程多处理器内
+
+L1 缓存和共享缓存共享一块存储区域，其结构如下：
+
+![L1 数据缓存和共享存储器的统一结构和数据通路](_media/L1数据缓存和共享存储器的统一结构和数据通路.jpg)
+
+> GPGPU 的 MSHR 功能和 CPU 类似。
+
+某种意义上讲，共享存储器像是一种可编程的 L1 缓存或便签式存储器（Scratchpad Memory），提供了一种可以控制数据何时存储在可编程多处理器内的方法。
+
+L1 缓存/共享存储器依然是由板块组成。所以也会发生板块冲突。
+
+对于 L1 缓存的读操作，会尝试将整个线程束的全局访问请求拆分成符合地址合并规则的一个或多个访存请求，交给仲裁器。
+接着，仲裁器可能会因为资源不足（MSHR 单元无足够单元或缓存资源被占用）而拒绝请求。
+如果资源足够，就会处理请求，并向 RF 产生一个写回时间，表示未来会占用 RF 写端口。
+
+
+对于 L1 缓存的写操作，由于 L1 缓存一般不支持一致性，所以会按照类型做不同决策
+
+- 对于局部存储器数据，为线程私有，一般不会引起一致性问题，可以选择写回（Write Back）策略
+- 对于全局存储器的数据，可以采用写逐出（Write Evict）策略，直接写入 L2 缓存同时使 L1 缓存中的副本无效（Invalidation）
+- 对于写缺失可以选择写不分配（Write No Allocation）策略，减少 L1 缓存压力
+
+在无冲突情况下，访问共享存储器是不需要经过标记单元的，共享存储器由编程人员显式控制，地址是直接映射的。
+在有板块冲突的时候，GPGPU 设计了基于重播（Replay）机制的共享存储器读写策略，也即无冲突请求照常执行，有冲突请求退回到指令缓存或特别划定一块缓存保存，等待稍后重新发射。
+
+高缓优化设计：
+
+- [缓存旁路](https://doi.org/10.1109/HPCA.2015.7056023 "Coordinated static and dynamic cache bypassing for GPUs")
+- [共享存储器优化](https://doi.org/10.1145/2016604.2016608 "Elastic pipeline: addressing GPU on-chip shared memory bank conflicts")
+
+## 可编程多处理器外
+
+L2 缓存、帧缓存、光栅化单元构成存储分区单元
+
+- L2 缓存，缓冲图形流水线和通用计算中的数据，也被称为 GPGU 最后一级缓存（Last Level Cache，LLC）。
+- 帧缓存（Frame Buffer，FB），对全局访存请求进行重排序，以减少访问次数和开销，达到类似存储访问调度器的作用。
+  - 例如针对读操作，维护两张表，读请求排序表（Read Request Sorter）和读请求存储表（Read Request Store）。
+  - 第一个表用于合并同板块的读请求，并映射到一个读取指针上
+  - 第二个表用于第一张表产生的指针和对应的读操作请求
+- 光栅化单元（Raster Operation Unit，ROP），主要在图形流水线中对纹理数据的压缩提供支持，完成图像渲染中的步骤。同时，ROP 单元也能完成 CUDA 中的原子操作请求。
+
+全局存储器由 [GDDR](https://en.wikipedia.org/wiki/GDDR_SDRAM "GDDR SDRAM") 构成。
+
+## 架构设计优化
+
+片上资源融合：
+
+- [RF，Shared Memory，L1 Cache 静态融合设计](https://doi.org/10.1109/MICRO.2012.18 "Unifying Primary Cache, Scratch, and Register File Memories in a Throughput Processor")
+- [RF，L1 Cache 动态融合设计](https://dl.acm.org/doi/10.5555/3195638.3195655 "Cache-emulated register file: an integrated on-chip memory architecture for high performance GPGPUs")
+- [利用线程限流的 RF 增大 L1 缓存容量](https://doi.org/10.1145/3307650.3322222 "Linebacker: Preserving Victim Cache Lines in Idle Register Files of GPUs")
+
+其他优化：
+
+- [Register Aware Prefetching](https://doi.org/10.1109/HPCA.2014.6835970 "Spare register aware prefetching for graph algorithms on GPUs")
+- [Register File Virtualization](https://doi.org/10.1145/2830772.2830784 "GPU Register File Virtualization")
+- [CORF](https://doi.org/10.1145/3297858.3304026 "CORF: Coalescing Operand Register File for GPUs")
 
 # GPGPU 运算单元架构
 
