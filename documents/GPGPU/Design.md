@@ -170,8 +170,9 @@ GPGPU 架构不同，每个流多处理器能够接受的线程块数量也不�
 
 ### 寄存器文件
 
-寄存器文件（Register File）是流多处理器片上存储器中最为重要的一个部分，它提供了与计算内核相匹配的数据访问速度。
-GPGPU 会将这些寄存器静态地分配给每个线程，使得每个线程都可以配备一定数量的寄存器，防止寄存器溢出所导致的性能下降。
+寄存器文件（Register File，RF）是流多处理器片上存储器中最为重要的一个部分，它提供了与计算内核相匹配的数据访问速度，多采用 SRAM 进行设计。
+
+GPGPU 会将寄存器静态地分配给每个线程，使得每个线程都可以配备一定数量的寄存器，防止寄存器溢出所导致的性能下降。
 所以 GPGPU 会提供大容量的寄存器文件，能够让更多的线程同时保持在活跃状态。
 如此大容量的寄存器文件往往只能采用高密度的静态存储器阵列进行搭建，以减小面积和功耗。
 
@@ -183,10 +184,46 @@ GPGPU 会将这些寄存器静态地分配给每个线程，使得每个线程�
 > 因此，从一个执行上下文切换到另一个执行上下文没有损失。
 > 同时，由于这个特性，多个线程束对寄存器的消耗也非常大。
 
+寄存器文件采用多个板块（Bank）的单端口 SRAM 来模拟多端口的访问。
+由于其总容量非常大，每个逻辑板块还会被进一步拆分为更小的物理板块。
+
+GPGPU 会以线程束所包含的线程数量 N 为单位，将 N 个寄存器打包成线程束寄存器（Warped Register）并分散到各个板块里，进行统一读取和写入以提高效率。
+
+因为单端口板块不能支持并行访问，所以会有板块冲突（Bank Conflict）问题，使得效率降低。
+为缓解该问题，使用了如下的方法：
+
+1. 使用操作数收集器（Operand Collector）以提高效率
+2. 寄存器板块交错分布，降低板块冲突可能
+
+> 同时由于板块冲突等问题，会引发 WAR 冒险：
+> 
+> 依次运行 A 和 B 两条指令，A 和 B 之间有 WAR 关系。
+> A 由于板块冲突一直无法发射，而 B 在这过程中完成了所有计算并准备写回。
+>
+> 而 RAW 和 WAW 则会由记分牌阶段解决，不会在该阶段出现。
+>
+> 为解决这个问题，有多种方案，如：
+> 
+> 1. 约束每个线程束顺序执行且最多执行一条指令
+> 2. 可以约束每个线程束每次仅允许一条指令在操作数收集器中收集数据
+
+其他优化设计办法：
+
+- [增加前置寄存器文件缓存的设计](https://doi.org/10.1145/2000064.2000093 "Energy-efficient mechanisms for managing thread context in throughput processors")
+- [基于嵌入式动态存储器的寄存器文件设计](https://doi.org/10.1145/2508148.2485952 "An energy-efficient and scalable eDRAM-based register file architecture for GPGPU")
+  - 首次提出利用非 `SRAM` 的 `eDRAM` 设计 RF，基于该创新，后续出现了使用 `STT-RAM`，`Racetrack Memory`，`Carbon NanoTube Field-Effect Transistor`（CNTFET）或混合结构来改良 RF 或其他大容量片上存储的设计
+  - [STT-RAM](https://doi.org/10.1145/2744769.2744785 "A STT-RAM-based low-power hybrid register file for GPGPUs")
+  - [Racetrack Memory](https://doi.org/10.1109/TC.2017.2690855 "An Energy-Efficient GPGPU Register File Architecture Using Racetrack Memory")
+  - [CNTFET](https://doi.org/10.1109/ICCD.2016.7753354 "CNFET-based high throughput register file architecture")
+  - [STT-RAM/SRAM hybrid](https://doi.org/10.1109/ICCAD.2017.8203850 "Towards warp-scheduler friendly STT-RAM/SRAM hybrid GPGPU register file design")
+- [利用数据压缩的寄存器文件设计](https://doi.org/10.1145/2749469.2750417 "Warped-Compression: Enabling power efficient GPUs through register compression")
+- [编译信息辅助的小型化寄存器文件设计](https://doi.org/10.1145/3123939.3123974 "RegLess: Just-in-Time Operand Staging for GPUs")
+
 ### 局部存储器
 
 每个线程除了访问分配的寄存器外，还拥有自己独立的存储空间，即局部存储器（Local Memory）。
 局部存储器是私有的，**只有本线程** 才能进行读写。
+
 一般情况下，如果线程发生寄存器溢出，或使用了大型的局部数据结构，或编译器无法静态的确定数据的大小时候，这些变量就会被分配到局部存储器中。
 
 由于不确定其容量，**局部存储器的数据实际上会被保存在全局存储器中**，而不像寄存器那样是片内独立的存储资源，因此其读写代价十分高昂。
@@ -204,11 +241,6 @@ GPGPU 会将这些寄存器静态地分配给每个线程，使得每个线程�
 相比于全局存储器，共享存储器能够以类似于寄存器的访问速度读写其中的内容，而且可以根据编程人员的需要显式地进行存储管理，因此它是实现线程间通信开销最低的方法。
 
 在内核函数中，变量前加上说明符 `__shared__`，声明的变量会被存储在共享存储器中。
-
-在 Nvidia V100 架构中的一个流多处理器中，共享存储器和 L1 高速数据缓存可以共享同一块 128KB 的片上存储空间。两者之间的大小分配可以进行切换。
-
-> [!WARNING]
-> 根据 V100 例子，共享存储器和 L1 高速数据缓存共享同一块片上存储空间而不是独立的。
 
 ### L1 高速数据缓存
 
@@ -436,7 +468,10 @@ SASS 可以体现出特定型号的 GPGPU 对于 PTX 功能的实现方式。
 - 所有需要的代码、配置和运行数据从硬盘加载到主机端存储器中，然后由一系列运行和驱动 API 将数据传送到 GPGPU 的设备端存储器中
 - 计算出结果后，CPU 将结果由设备端存储器传送回主机端存储器
 
-CPU 更加强化了控制流方面的性能，适合统筹整个系统运行，所有策略的主语基本都是 CPU。而 GPGPU 则强化了计算方面的能力，计算密集型任务便交给 GPGPU 执行。
+CPU 更加强化了控制流方面的性能，适合统筹整个系统运行，所有策略的主语基本都是 CPU。
+而 GPGPU 则强化了计算方面的能力，计算密集型任务便交给 GPGPU 执行。
+
+同时，GPGPU 设计更倾向于使用顺序执行，而没有用乱序执行等需要复杂控制的办法。
 
 一种变种的异构计算平台架构就是统一存储结构系统，它往往仅配备主机端存储器而省去设备端存储器，这样主机端和设备端两者共用主机端存储器。
 另外一个变种是使用多个 GPGPU 并行工作。
@@ -791,6 +826,16 @@ C: // critical section
   - [利用线程块重聚类感知局部性的软件调度策略](https://doi.org/10.1145/3037697.3037709 "Locality-Aware CTA Clustering for Modern GPUs")
 
 # GPGPU 存储架构
+
+GPGPU 一般采用专用存储器件如 GDDR（Graphics Double Data Rate）和 HBM（High Bandwidth Memory）。
+
+本节主要介绍可编程多处理器内外的存储系统和架构优化。
+
+其存储结构如下图所示：
+
+![GPGPU 存储层次](_media/GPGPU存储层次.png)
+
+## 数据通路
 
 # GPGPU 运算单元架构
 

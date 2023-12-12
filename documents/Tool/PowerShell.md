@@ -6,6 +6,19 @@
 
 PowerShell 的命令（叫 cmdlets）使用相同的格式 `Verb-Noun` 的语法。
 
+## 开机运行
+
+- 通过将脚本的快捷方式放到 `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup` 中可以实现
+- 使用 `win + r` 启动 `taskschd.msc` 创建任务计划
+  - Task Scheduler 不能直接运行 `*.ps1`, 需要额外创建一个命令脚本 `*.cmd`
+
+```
+PowerShell -Command "Set-ExecutionPolicy Unrestricted" >> "%USERPROFILE%\Documents\log.txt" 2>&1
+PowerShell %USERPROFILE%\Documents\script.ps1 >> "%USERPROFILE%\Documents\log.txt" 2>&1
+```
+
+第一行赋予管理员权限，第二行执行脚本。
+
 ## 仅查看执行效果
 
 如果只想查看执行后的效果，而不是真的执行，可以使用 `-whatif` 参数。
