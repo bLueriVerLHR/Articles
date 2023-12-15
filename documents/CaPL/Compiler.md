@@ -177,6 +177,7 @@ int yyerror(YYLTYPE *yylloc, yyscan_t scanner, const char *msg) {
 
 int parse_file(const char *file) {
   int code = 0;
+  yyscan_t scanner;
   code = yylex_init(&scanner);
   if (code != 0) {
     fprintf(stderr, "scanner initialize failed, code : %d\n", code);
