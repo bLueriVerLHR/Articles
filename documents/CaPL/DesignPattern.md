@@ -62,7 +62,7 @@ ProductTwoPlatformTwo -up-|> AbstractProductTwo
 
 ### 举例
 
-``` c++
+``` cpp
 extern "C" int printf(const char *__restrict__ __format, ...);
 
 class Shape {
