@@ -188,7 +188,7 @@ int parse_file(const char *file) {
   YY_BUFFER_STATE state = yy_create_buffer(fp, YY_BUF_SIZE, scanner);
   yy_switch_to_buffer(state, scanner);
 
-  yyset_extra((void *)file, scanner);
+  yyset_extra(file, scanner);
   code = yyparse(scanner);
   if (code != 0)
     return code;
