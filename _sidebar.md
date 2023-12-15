@@ -1,5 +1,6 @@
 - [Home](/)
 - [CaPL.Compiler](/documents/CaPL/Compiler.md)
+- [CaPL.DesignPattern](/documents/CaPL/DesignPattern.md)
 - [CaPL.Rust](/documents/CaPL/Rust.md)
 - [MLSys](/documents/MLSys/)
 - [Tool.Git](/documents/Tool/Git.md)
