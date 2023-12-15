@@ -4,6 +4,8 @@
 
 - [The Rust Programming Language](https://doc.rust-lang.org/stable/book)
 
+目前 Rust GUI 库可以用 Dioxus
+
 # 概述
 
 Rust 是一种 **预编译静态类型**（Ahead-of-Time Compiled）语言。
