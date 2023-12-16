@@ -6,6 +6,8 @@
 
 正在阅读的论文
 
+- [ ] [FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU](https://doi.org/10.48550/arXiv.2303.06865)
+- [ ] [MaxK-GNN: Towards Theoretical Speed Limits for Accelerating Graph Neural Networks Training](https://doi.org/10.48550/arXiv.2312.08656)
 - [ ] [Tango: rethinking quantization for graph neural network training on GPUs](https://doi.org/10.48550/arXiv.2308.00890)
 - [ ] [GraNNDis: Efficient Unified Distributed Training Framework for Deep GNNs on Large Clusters](https://doi.org/10.48550/arXiv.2311.06837)
 - [ ] [cuDNN: Efficient Primitives for Deep Learning](https://doi.org/10.48550/arXiv.1410.0759)

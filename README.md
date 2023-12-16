@@ -7,7 +7,6 @@
 
 目前正在进行的方向如下：
 
-- [ ] GPGPU 架构 (Ongoing)
 - [ ] Rust 语言学习 (Ongoing)
 - [ ] LLM Inference 优化 (Ongoing)
 - [ ] SSA-Based 编译器实现 (Ongoing)

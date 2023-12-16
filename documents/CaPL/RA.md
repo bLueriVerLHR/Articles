@@ -62,7 +62,7 @@ fn mark_leaders:
   create iterator it on unstructured control flow
   while it not reach end:
     if *it is J:
-      mark *next(it) and targets of J as leader
+      mark *next(it) and targets of *it as leader
     it = next(it)
 
 fn create_basic_blocks:
