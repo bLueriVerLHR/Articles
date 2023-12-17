@@ -6,8 +6,11 @@
 
 正在阅读的论文
 
-- [ ] [FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU](https://doi.org/10.48550/arXiv.2303.06865)
 - [ ] [MaxK-GNN: Towards Theoretical Speed Limits for Accelerating Graph Neural Networks Training](https://doi.org/10.48550/arXiv.2312.08656)
+  - 提出了非线性函数 MaxK 和对应的 Compressed Balanced Sparse Row（CBSR）用于存储结果特征矩阵的数据与索引
+  - 基于 CBSR 数据结构设计了全新的内核函数
+    - 在向前传播中设计了 Sparse Matrix-Matrix Multiplication（SpGEMM）内核函数
+    - 在向后传播中设计了 Sampled Sparse Matrix Dense Matrix Multiplication（SSpMM）内核函数
 - [ ] [Tango: rethinking quantization for graph neural network training on GPUs](https://doi.org/10.48550/arXiv.2308.00890)
 - [ ] [GraNNDis: Efficient Unified Distributed Training Framework for Deep GNNs on Large Clusters](https://doi.org/10.48550/arXiv.2311.06837)
 - [ ] [cuDNN: Efficient Primitives for Deep Learning](https://doi.org/10.48550/arXiv.1410.0759)
@@ -28,6 +31,11 @@
 - [ ] [Lectures on Spectral Graph Theory](https://mathweb.ucsd.edu/~fan/cbms.pdf)
 - [ ] [SPECTRAL GRAPH THEORY](https://mathweb.ucsd.edu/~fan/research/revised.html)
 - [ ] [Multistep speed prediction on traffic networks: A deep learning approach considering spatio-temporal dependencies](https://doi.org/10.1016/j.trc.2019.05.039)
+- [ ] [FlexGen: High-Throughput Generative Inference of Large Language Models with a Single GPU](https://doi.org/10.48550/arXiv.2303.06865)
+  - 将分散的 batch 重新合并成一组，块内的 batch 以每次都共享同一层权重，完成一层权重后再进行下一层计算的 layer-by-layer 方式计算
+    - FlexGen 目的在提高吞吐，故以延迟作为代价提高吞吐
+    - 现有系统，基本上是 batch-by-batch 每次优先处理完一个 batch 再处理下一个 batch，吞吐不是很高
+  - 提出一个推理时内存峰值估算方法
 - [ ] [GNNFlow: A Distributed Framework for Continuous Temporal GNN Learning on Dynamic Graphs](https://doi.org/10.48550/arXiv.2311.17410)
   - DTDG、CTDG 两种动态图
     - DTDG 离散时间动态图，离散快照，会丢失连续性
