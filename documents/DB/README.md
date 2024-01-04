@@ -4,8 +4,8 @@
 - [ ] [Staring into the abyss: an evaluation of concurrency control with one thousand cores](https://doi.org/10.14778/2735508.2735511)
 - [ ] [A timestamp-based concurrency control algorithm for heterogeneous distributed databases](https://doi.org/10.1109/ICCI.1993.315333)
 - [ ] [FOEDUS: OLTP Engine for a Thousand Cores and NVRAM](https://doi.org/10.1145/2723372.2746480)
+- [ ] [An Elastic Multi-Core Allocation Mechanism for Database Systems](https://doi.org/10.1109/ICDE.2018.00050)
 - [ ] [Zen: a high-throughput log-free OLTP engine for non-volatile main memory](https://doi.org/10.14778/3446095.3446105)
-  - 
 - [ ] [NUMASK: High Performance Scalable Skip List for NUMA](https://doi.org/10.4230/LIPIcs.DISC.2018.18)
   - 新型跳表，利用 NUMA 性质，将跳表项分布在不同地方。
   - 本地缓存解决大部分读写，本地找不到就向外部设备查询。
