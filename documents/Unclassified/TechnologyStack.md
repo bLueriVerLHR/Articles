@@ -7,12 +7,9 @@
 + Technology Stack
 ++ Web
 +++ Frontend
-++++ Vue
 ++++ React
 +++ Backend
-++++ Gin Golang
-++++ Drongon C++
-++++ ? Rust
+++++ std Rust
 ++ APP UI
 +++ NCurses
 -- Shell
@@ -24,9 +21,6 @@
 --- Rust
 -- Device Programming Language
 --- CUDA
--- Network
---- C
---- Rust
 -- Architecture
 --- RISC-V
 --- LoongArch

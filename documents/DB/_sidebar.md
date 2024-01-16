@@ -1,2 +1,0 @@
-- [DB](/documents/DB/)
-- [死锁处理](/documents/DB/WayToHandleDeadLocks.md)

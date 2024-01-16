@@ -1,3 +1,2 @@
 - [MLSys](/documents/MLSys/)
 - [GPGPU.Design](/documents/MLSys/GPGPU/Design.md)
-- [LLM.SpotServe](/documents/MLSys/LLM/SpotServe.md)
